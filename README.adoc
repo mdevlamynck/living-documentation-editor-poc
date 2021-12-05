@@ -1,0 +1,45 @@
+= Living Documentation Editor POC
+
+== Living Documentation TL;DR
+
+The core ideas of living documentation are:
+
+* Keep one source of truth were possible
+* Generate other convenient documentation formats from that source of truth (ex: generate schema of code architecture directly from source code or database schema from existing database)
+* When we can't keep only one source of truth, prevent them from diverging with an automatic detection (ex: the source code is a source of truth, the specification is an other: both specify software behavior. Turning specification into tests allows to check the two are consistent. BDD with Gerkhin is a good example of docs that also can be used as tests)
+
+This approach tries to reduce the pain of maintaining documentation (through automatic generation) and tries to avoid doc from getting out of sync with the thing they document (through single source of truth when possible and through automated consistency checks when not).
+
+== Editor POC
+
+Applied to an editor doc we can:
+
+* Describe the interaction with the editor (think vim doc for example) including a sample of the screen before and after.
+* From that we can generate:
+** A gif showing the interaction that can be inlined directly into generated docs (like images during markdown to html conversion).
+** A fake editor that plays the interactions allowing to get a feel for what the real thing could be like.
+** A functional test suite comparing a real implementation to the docs.
+** A keybing conflict detection (in the same situation, a given key press should produce two different results).
+
+== Demo
+
+This repo only contains a very minimal fake editor and a sample doc.
+To run the example: `cargo run -- scenarios/writing_max_clamp_function_roc.md`.
+This example documents how to write the function `clamp` (assuming `max` and `min` exist):
+
+```
+clamp : Num a, Num a, Num a -> Num a
+clamp = \v, low, high ->
+    v
+        |> max low
+        |> min high
+```
+
+The fake editor will only progress if the correct key is pressed (try to guess the right one, I've tried to keep things intuitive).
+This example uses `+[_]+` to show were the focus is and `+_+` for holes in the edited AST.
+
+== Improvements
+
+The current format (markdown) was choosen to quickly implement this demo.
+Writing the doc is kind of a pain in this current form.
+A better format is needed and probably shouldn't be text based.

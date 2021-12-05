@@ -26,7 +26,7 @@ clam : _
 clamp : _
 [clamp_] = _
 ```
-` =`
+` =:`
 ```screen
 clamp : _
 clamp = [_]
@@ -172,14 +172,14 @@ clamp = \v, low, high ->
 ```
 `w`
 ```screen
-clamp : Num *, Num *, * -> Num *
+clamp : Num a, Num a, * -> Num a
 clamp = \v, low, high ->
     v
         |> max [low_]
 ```
 ` `
 ```screen
-clamp : Num *, Num *, * -> Num *
+clamp : Num a, Num a, * -> Num a
 clamp = \v, low, high ->
     v
         |> max low [_]
@@ -250,7 +250,7 @@ clamp = \v, low, high ->
 ```
 `h`
 ```screen
-clamp : Num *, Num *, Num * -> Num *
+clamp : Num a, Num a, Num a -> Num a
 clamp = \v, low, high ->
     v
         |> max low
