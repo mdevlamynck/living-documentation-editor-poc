@@ -24,7 +24,7 @@ Applied to an editor doc we can:
 == Demo
 
 This repo only contains a very minimal fake editor and a sample doc.
-To run the example: `cargo run -- scenarios/writing_max_clamp_function_roc.md`.
+To run the example: `cargo run -- scenarios/writing_clamp_function_roc.md`.
 This example documents how to write the function `clamp` (assuming `max` and `min` exist):
 
 ```
