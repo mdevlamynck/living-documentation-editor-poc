@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 combine = "4.6.2"
+dissimilar = "1.0.3"
 markdown = "0.3.0"
 serde = { version = "1.0.131", features = ["derive"] }
 serde_yaml = "0.8.21"

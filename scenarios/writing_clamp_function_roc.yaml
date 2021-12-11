@@ -1,187 +1,105 @@
 first: '1'
 screens:
   1: |
-    ❮┃❯
-  2-0: |
-    c : _
-    ❮c┃❯ = _
-  2-1: |
-    cl : _
-    ❮cl┃❯ = _
-  2-2: |
-    cla : _
-    ❮cla┃❯ = _
-  2-3: |
-    clam : _
-    ❮clam┃❯ = _
+    ┃
   2: |
-    clamp : _
-    ❮clamp┃❯ = _
+    clamp : 🗌
+    clamp┃ = 🗌
   3: |
-    clamp : _
-    clamp = ❮┃❯
+    clamp : 🗌
+    clamp = ┃
   4: |
-    clamp : _ -> _
-    clamp = \❮┃❯ ->
-      _
+    clamp : 🗌 -> 🗌
+    clamp = \┃ ->
+      🗌
   5: |
-    clamp : _ -> _
-    clamp = \❮v┃❯ ->
-      _
+    clamp : 🗌 -> 🗌
+    clamp = \v┃ ->
+      🗌
   6: |
-      clamp : _ -> _
-      clamp = \v, ❮┃❯ ->
-        _
-  7-0: |
-    clamp : _, _ -> _
-    clamp = \v, ❮l┃❯ ->
-      _
-  7-1: |
-    clamp : _, _ -> _
-    clamp = \v, ❮lo┃❯ ->
-      _
+      clamp : 🗌, 🗌 -> 🗌
+      clamp = \v, ┃ ->
+        🗌
   7: |
-    clamp : _, _ -> _
-    clamp = \v, ❮low┃❯ ->
-      _
+    clamp : 🗌, 🗌 -> 🗌
+    clamp = \v, low┃ ->
+      🗌
   8: |
-    clamp : _, _ -> _
-    clamp = \v, low, ❮┃❯ ->
-      _
-  9-0: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, ❮h┃❯ ->
-      _
-  9-1: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, ❮hi┃❯ ->
-      _
-  9-2: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, ❮hig┃❯ ->
-      _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
+    clamp = \v, low, ┃ ->
+      🗌
   9: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, ❮high┃❯ ->
-      _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
+    clamp = \v, low, high┃ ->
+      🗌
   10: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high, ❮┃❯ ->
-      _
+    clamp : 🗌, 🗌, 🗌, 🗌 -> 🗌
+    clamp = \v, low, high, ┃ ->
+      🗌
   11: |
-    clamp : _, _, _ -> _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
-      ❮┃❯
+      ┃
   12: |
     clamp : a, *, * -> a
     clamp = \v, low, high ->
-      ❮v┃❯
+      v┃
   13: |
     clamp : a, *, * -> a
     clamp = \v, low, high ->
-      v ❮┃❯
+      v ┃
   14: |
-    clamp : _, _, _ -> _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
-        |> ❮┃❯
-  15-0: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> ❮m┃❯
-  15-1: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> ❮ma┃❯
+        |> ┃
   15: |
-    clamp : _, _, _ -> _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
-        |> ❮max┃❯
+        |> max┃
   16: |
-    clamp : _, _, _ -> _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
-        |> max ❮┃❯
-  17-0: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> max ❮l┃❯
-  17-1: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> max ❮lo┃❯
+        |> max ┃
   17: |
     clamp : Num a, Num a, * -> Num a
     clamp = \v, low, high ->
       v
-        |> max ❮low┃❯
+        |> max low┃
   18: |
     clamp : Num a, Num a, * -> Num a
     clamp = \v, low, high ->
       v
-        |> max low ❮┃❯
+        |> max low ┃
   19: |
-    clamp : _, _, _ -> _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
         |> max low
-        |> ❮┃❯
-  20-0: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> max low
-        |> ❮m┃❯
-  20-1: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> max low
-        |> ❮mi┃❯
+        |> ┃
   20: |
-    clamp : _, _, _ -> _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
         |> max low
-        |> ❮min┃❯
+        |> min┃
   21: |
-    clamp : _, _, _ -> _
+    clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
         |> max low
-        |> min ❮┃❯
-  22-0: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> max low
-        |> min ❮h┃❯
-  22-1: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> max low
-        |> min ❮hi┃❯
-  22-2: |
-    clamp : _, _, _ -> _
-    clamp = \v, low, high ->
-      v
-        |> max low
-        |> min ❮hig┃❯
+        |> min ┃
   22: |
     clamp : Num a, Num a, Num a -> Num a
     clamp = \v, low, high ->
       v
         |> max low
-        |> min ❮high┃❯
+        |> min high┃
 transitions:
   - { from: '1', to: '2', word: 'clamp' }
-  - {  from: '2', to: '3', keys: [' ', '='] }
+  - { from: '2', to: '3', keys: [' ', '='] }
   - { from: '3', to: '4', key: '\' }
   - { from: '2', to: '4', key: '\' }
   - { from: '4', to: '5', word: 'v' }

@@ -46,6 +46,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dissimilar"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31ad93652f40969dead8d4bf897a41e9462095152eb21c56e5830537e41179dd"
+
+[[package]]
 name = "dtoa"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -90,6 +96,7 @@ name = "living-documentation-editor-poc"
 version = "0.1.0"
 dependencies = [
  "combine",
+ "dissimilar",
  "markdown",
  "serde",
  "serde_yaml",

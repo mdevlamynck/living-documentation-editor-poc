@@ -123,6 +123,7 @@ pub mod content {
 
     pub mod parser {
         use super::*;
+        use crate::itertools::NGramExt;
         use combine::parser::char::{char, string};
         use combine::{attempt, choice, satisfy, Parser};
         use serde::de::{self, Visitor};
@@ -153,12 +154,12 @@ pub mod content {
             let content: String = fs::read_to_string(path)?;
             let FileScenario {
                 first,
-                screens,
+                mut screens,
                 transitions,
             } = serde_yaml::from_str(&content)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-            // add_intermediate_word_screens(&mut screens, &transitions);
+            add_intermediate_word_screens(&mut screens, &transitions);
 
             Ok(Scenario {
                 first,
@@ -174,11 +175,63 @@ pub mod content {
             })
         }
 
-        // fn add_intermediate_word_screens(
-        //     screens: &mut BTreeMap<Id, Screen>,
-        //     transitions: Vec<Transition>,
-        // ) {
-        // }
+        fn add_intermediate_word_screens(
+            screens: &mut BTreeMap<Id, Screen>,
+            transitions: &Vec<FileTransition>,
+        ) {
+            use FileTransition as FT;
+
+            let words = transitions.iter().filter_map(|t| match t {
+                FT::Word { from, to, word } => Some((from, to, word)),
+                _ => None,
+            });
+
+            for (from, to, word) in words {
+                let last = word.len() - 1;
+
+                for (index, intermediate) in word.ngram().enumerate() {
+                    if index == last {
+                        break;
+                    }
+
+                    let (screen_from, screen_to) = match (screens.get(from), screens.get(to)) {
+                        (Some(screen_from), Some(screen_to)) => (screen_from, screen_to),
+                        _ => break,
+                    };
+
+                    screens.insert(
+                        format!("{}-{}", to, index),
+                        generate_intermediate_screen(screen_from, screen_to, &word, &intermediate),
+                    );
+                }
+            }
+        }
+
+        fn generate_intermediate_screen(
+            from: &str,
+            to: &str,
+            word: &str,
+            intermediate: &str,
+        ) -> String {
+            dissimilar::diff(from, to)
+                .iter()
+                .skip_while(|c| match c {
+                    &dissimilar::Chunk::Delete(_) => true,
+                    _ => false,
+                })
+                .map(|c| match c {
+                    &dissimilar::Chunk::Equal(str) => str.into(),
+                    &dissimilar::Chunk::Delete(str) => str.into(),
+                    &dissimilar::Chunk::Insert(str) => {
+                        if str.contains(word) {
+                            str.replace(word, intermediate)
+                        } else {
+                            "".into()
+                        }
+                    }
+                })
+                .collect::<String>()
+        }
 
         fn file_key_to_transition(from: &Id, to: &Id, key: &Key) -> Vec<Transition> {
             vec![Transition {
@@ -389,5 +442,45 @@ pub mod tui {
         }
 
         out.flush().unwrap();
+    }
+}
+
+pub mod itertools {
+    pub trait NGramExt {
+        fn ngram(&self) -> NGram;
+    }
+
+    impl NGramExt for String {
+        fn ngram(&self) -> NGram {
+            NGram {
+                string: self,
+                pos: 0,
+            }
+        }
+    }
+
+    pub struct NGram<'a> {
+        string: &'a String,
+        pos: usize,
+    }
+
+    impl<'a> Iterator for NGram<'a> {
+        type Item = String;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.pos >= self.string.len() {
+                return None;
+            }
+
+            self.pos += 1;
+
+            Some(self.string.chars().take(self.pos).collect::<String>())
+        }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            let len = self.string.len();
+
+            (len, Some(len))
+        }
     }
 }
