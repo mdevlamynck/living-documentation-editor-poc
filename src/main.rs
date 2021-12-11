@@ -195,13 +195,13 @@ pub mod content {
                     }
 
                     let (screen_from, screen_to) = match (screens.get(from), screens.get(to)) {
-                        (Some(screen_from), Some(screen_to)) => (screen_from, screen_to),
+                        (Some(screen_from), Some(screen_to)) => (screen_from.clone(), screen_to.clone()),
                         _ => break,
                     };
 
                     screens.insert(
                         format!("{}-{}", to, index),
-                        generate_intermediate_screen(screen_from, screen_to, &word, &intermediate),
+                        generate_intermediate_screen(&screen_from, &screen_to, &word, &intermediate),
                     );
                 }
             }
@@ -427,7 +427,7 @@ pub mod tui {
     }
 
     fn render(ui: UI, out: &mut impl Write) {
-        write!(out, "{}{}", termion::clear::All, termion::style::Bold);
+        write!(out, "{}{}", termion::clear::All, termion::style::Bold).expect("Failed to clear terminal.");
 
         match ui {
             UI::Content(content) => content.lines().enumerate().for_each(|(pos, content)| {
