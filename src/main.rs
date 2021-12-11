@@ -213,7 +213,10 @@ pub mod content {
             word: &str,
             intermediate: &str,
         ) -> String {
-            dissimilar::diff(from, to)
+            dissimilar::diff(
+                &from.replace("┃🗌", "┃"), 
+                to
+            )
                 .iter()
                 .skip_while(|c| match c {
                     &dissimilar::Chunk::Delete(_) => true,
