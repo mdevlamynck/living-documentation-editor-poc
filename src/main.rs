@@ -4,122 +4,296 @@ fn main() -> io::Result<()> {
     let file_name = args()
         .nth(1)
         .expect("Expected file path to the scenario to play.");
-    let content = content::parser::read_markdown(&file_name)?;
+    let scenario = content::parser::read_yaml(&file_name)?;
 
-    tui::run(app::app(content));
+    tui::run(app::app(scenario));
 
     Ok(())
 }
 
 mod app {
-    use std::cmp::min;
-    use crate::{content::Content, tui::*};
+    use crate::content::Modifier;
+    use crate::{
+        content::{self, Id, Scenario},
+        tui::*,
+    };
 
     pub struct Model {
-        content: Vec<Content>,
-        pos:     usize,
+        scenario: Scenario,
+        current: Id,
     }
 
-    pub fn app(content: Vec<Content>) -> App<Model> {
+    pub fn app(scenario: Scenario) -> App<Model> {
+        let current = scenario.first.clone();
+
         App {
-            model: Model { content, pos: 0 },
+            model: Model { scenario, current },
             update,
             view,
         }
     }
 
-    pub fn update(event: Event, mut model: Model) -> Option<Model> {
+    pub fn update(event: Event, model: Model) -> Option<Model> {
         match event {
             Event::Key(Key::Esc) => None,
-            Event::Key(Key::Char(c)) => {
-                let index = min(model.pos, model.content.len() - 1);
-
-                if model.content[index].key.contains(c) {
-                    model.pos += 1;
-                }
-
-                Some(model)
-            },
+            Event::Key(Key::Char(c)) => advance(model, content::Key::from(c)),
+            Event::Key(Key::Alt(c)) => {
+                advance(model, content::Key::with_modifier(c, Modifier::Alt))
+            }
+            Event::Key(Key::Ctrl(c)) => {
+                advance(model, content::Key::with_modifier(c, Modifier::Ctrl))
+            }
             _ => Some(model),
         }
     }
 
-    pub fn view(model: &Model) -> UI {
-        let index = min(model.pos, model.content.len() - 1);
-        let screen = &model.content[index].screen;
+    fn advance(mut model: Model, key: content::Key) -> Option<Model> {
+        model.current = model
+            .scenario
+            .advance(&model.current, &key)
+            .unwrap_or(model.current);
+        Some(model)
+    }
 
-        UI::Content(screen.into())
+    pub fn view(model: &Model) -> UI {
+        UI::Content(model.scenario.get(&model.current).unwrap_or(""))
     }
 }
 
 pub mod content {
-    #[derive(Debug, PartialEq, Eq)]
-    pub struct Content {
-        pub screen: String,
-        pub key:    String,
+    use serde::Deserialize;
+    use std::collections::{BTreeMap, BTreeSet};
+
+    pub struct Scenario {
+        pub first: Id,
+        screens: BTreeMap<Id, Screen>,
+        transitions: Vec<Transition>,
     }
 
-    impl Content {
-        pub fn new(screen: String, key: String) -> Self {
-            Self { screen, key }
+    pub type Id = String;
+    pub type Screen = String;
+
+    pub struct Transition {
+        from: Id,
+        to: Id,
+        key: Key,
+    }
+
+    #[derive(Clone, PartialEq, Eq)]
+    pub struct Key {
+        key: char,
+        modifiers: BTreeSet<Modifier>,
+    }
+
+    #[derive(Deserialize, Clone, PartialOrd, Ord, PartialEq, Eq)]
+    pub enum Modifier {
+        Alt,
+        Ctrl,
+    }
+
+    impl Scenario {
+        pub fn get(&self, pos: &Id) -> Option<&str> {
+            self.screens.get(pos).map(String::as_ref)
+        }
+
+        pub fn advance(&self, pos: &Id, input: &Key) -> Option<Id> {
+            self.transitions
+                .iter()
+                .filter(|Transition { from, key, .. }| from == pos && key == input)
+                .map(|Transition { to, .. }| to.clone())
+                .nth(0)
+        }
+    }
+
+    impl Key {
+        pub fn from(key: char) -> Self {
+            Self {
+                key,
+                modifiers: BTreeSet::new(),
+            }
+        }
+
+        pub fn with_modifier(key: char, modifier: Modifier) -> Self {
+            Self {
+                key,
+                modifiers: BTreeSet::from([modifier]),
+            }
         }
     }
 
     pub mod parser {
-        use std::{fs::read_to_string, io, path::Path};
+        use super::*;
+        use combine::parser::char::{char, string};
+        use combine::{attempt, choice, satisfy, Parser};
+        use serde::de::{self, Visitor};
+        use serde::{Deserialize, Deserializer, Serialize, Serializer};
+        use std::collections::BTreeSet;
+        use std::{fmt, fs, io, path::Path};
 
-        use markdown::{
-            self,
-            Block::{self, *},
-            Span::{self, *},
-        };
-
-        use super::Content;
-
-        pub fn read_markdown(path: impl AsRef<Path>) -> io::Result<Vec<Content>> {
-            let markdown = &read_to_string(path)?;
-            let tokens = markdown::tokenize(&markdown);
-
-            let screens = tokens
-                .iter()
-                .flat_map(markdown_block_to_screen)
-                .collect::<Vec<_>>();
-
-            let keys = tokens
-                .iter()
-                .flat_map(markdown_block_to_key)
-                .collect::<Vec<_>>();
-
-            let content = screens
-                .iter()
-                .zip(keys.iter())
-                .map(|(screen, key)| Content::new(screen.into(), key.into()))
-                .collect::<Vec<_>>();
-
-            Ok(content)
+        #[derive(Deserialize)]
+        pub struct FileScenario {
+            first: Id,
+            screens: BTreeMap<Id, Screen>,
+            transitions: Vec<FileTransition>,
         }
 
-        fn markdown_block_to_screen(block: &Block) -> Vec<String> {
-            match block {
-                CodeBlock(Some(lang), content) if lang == "screen" => vec![content.into()],
-                _ => vec![],
-            }
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        pub enum FileTransition {
+            Key { from: Id, to: Id, key: Key },
+            Keys { from: Id, to: Id, keys: Vec<Key> },
+            // Word { from: Id, to: Id, word: Word },
         }
 
-        fn markdown_block_to_key(block: &Block) -> Vec<String> {
-            match block {
-                Paragraph(content) => content
+        // pub type Word = String;
+
+        pub fn read_yaml(path: impl AsRef<Path>) -> io::Result<Scenario> {
+            use FileTransition as FT;
+
+            let content: String = fs::read_to_string(path)?;
+            let FileScenario {
+                first,
+                screens,
+                transitions,
+            } = serde_yaml::from_str(&content)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            // add_intermediate_word_screens(&mut screens, &transitions);
+
+            Ok(Scenario {
+                first,
+                screens,
+                transitions: transitions
                     .iter()
-                    .filter_map(markdown_span_to_key)
+                    .flat_map(|t| match t {
+                        FT::Key { from, to, key } => file_key_to_transition(from, to, key),
+                        FT::Keys { from, to, keys } => file_keys_to_transition(from, to, keys),
+                        // FT::Word { from, to, word } => file_word_to_transition(from, to, word),
+                    })
                     .collect::<Vec<_>>(),
-                _ => vec![],
+            })
+        }
+
+        // fn add_intermediate_word_screens(
+        //     screens: &mut BTreeMap<Id, Screen>,
+        //     transitions: Vec<Transition>,
+        // ) {
+        // }
+
+        fn file_key_to_transition(from: &Id, to: &Id, key: &Key) -> Vec<Transition> {
+            vec![Transition {
+                from: from.into(),
+                to: to.into(),
+                key: key.clone(),
+            }]
+        }
+
+        fn file_keys_to_transition(from: &Id, to: &Id, keys: &Vec<Key>) -> Vec<Transition> {
+            keys.iter()
+                .map(|key| Transition {
+                    from: from.into(),
+                    to: to.into(),
+                    key: key.clone(),
+                })
+                .collect::<Vec<_>>()
+        }
+
+        // fn file_word_to_transition(from: &Id, to: &Id, word: &Word) -> Vec<Transition> {
+        //     let first = 0;
+        //     let last = word.len() - 1;
+        //
+        //     word.chars()
+        //         .enumerate()
+        //         .map(|(index, key)| Transition {
+        //             from: if index == first {
+        //                 format!("{}", from)
+        //             } else {
+        //                 format!("{}-{}", from, index - 1)
+        //             },
+        //             to: if index == last {
+        //                 format!("{}", to)
+        //             } else {
+        //                 format!("{}-{}", from, index)
+        //             },
+        //             key: Key {
+        //                 key,
+        //                 modifiers: BTreeSet::new(),
+        //             },
+        //         })
+        //         .collect::<Vec<_>>()
+        // }
+
+        impl Key {
+            fn to_string(&self) -> String {
+                self.key.into()
+            }
+
+            fn from_string(str: &str) -> Result<Self, ()> {
+                choice((
+                    attempt(
+                        (
+                            char('<'),
+                            choice((
+                                attempt(char('A')).map(|_| Modifier::Alt),
+                                attempt(char('C')).map(|_| Modifier::Ctrl),
+                            )),
+                            char('-'),
+                            satisfy(|_| true),
+                            char('>'),
+                        )
+                            .map(|(_, modifier, _, key, _)| Key {
+                                key,
+                                modifiers: BTreeSet::from([modifier]),
+                            }),
+                    ),
+                    attempt(
+                        choice((
+                            attempt(string("<Enter>").map(|_| '\n')),
+                            attempt(satisfy(|_| true)),
+                        ))
+                        .map(|key| Key {
+                            key,
+                            modifiers: BTreeSet::new(),
+                        }),
+                    ),
+                ))
+                .parse(str)
+                .map(|(key, _)| key)
+                .map_err(|_| ())
             }
         }
 
-        fn markdown_span_to_key(span: &Span) -> Option<String> {
-            match span {
-                Code(content) => Some(content.into()),
-                _ => None,
+        impl Serialize for Key {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                serializer.serialize_str(&self.to_string())
+            }
+        }
+
+        impl<'de> Deserialize<'de> for Key {
+            fn deserialize<D>(deserializer: D) -> Result<Key, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                deserializer.deserialize_str(KeyStringVisitor)
+            }
+        }
+
+        struct KeyStringVisitor;
+        impl<'de> Visitor<'de> for KeyStringVisitor {
+            type Value = Key;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a Key")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Key::from_string(value).map_err(|_| E::custom(format!("Invalid key: {}", value)))
             }
         }
     }
@@ -141,13 +315,13 @@ pub mod tui {
     };
 
     pub struct App<Model: Sized> {
-        pub model:  Model,
+        pub model: Model,
         pub update: fn(Event, Model) -> Option<Model>,
-        pub view:   fn(&Model) -> UI,
+        pub view: fn(&Model) -> UI,
     }
 
-    pub enum UI {
-        Content(String),
+    pub enum UI<'a> {
+        Content(&'a str),
     }
 
     pub fn run<Model>(app: App<Model>) {
@@ -170,7 +344,7 @@ pub mod tui {
                         None => break,
                     };
                     render(view(&model), &mut out);
-                },
+                }
                 _ => break,
             }
         }
@@ -178,7 +352,7 @@ pub mod tui {
 
     fn init_tui() -> impl Write {
         MouseTerminal::from(HideCursor::from(AlternateScreen::from(
-            stdout().into_raw_mode().unwrap()
+            stdout().into_raw_mode().unwrap(),
         )))
     }
 

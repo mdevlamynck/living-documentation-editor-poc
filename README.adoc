@@ -24,7 +24,7 @@ Applied to an editor doc we can:
 == Demo
 
 This repo only contains a very minimal fake editor and a sample doc.
-To run the example: `cargo run -- scenarios/writing_clamp_function_roc.md`.
+To run the example: `cargo run -- scenarios/writing_clamp_function_roc.yaml`.
 This example documents how to write the function `clamp` (assuming `max` and `min` exist):
 
 ```
@@ -36,10 +36,4 @@ clamp = \v, low, high ->
 ```
 
 The fake editor will only progress if the correct key is pressed (try to guess the right one, I've tried to keep things intuitive).
-This example uses `+[_]+` to show were the focus is and `+_+` for holes in the edited AST.
-
-== Improvements
-
-The current format (markdown) was choosen to quickly implement this demo.
-Writing the doc is kind of a pain in this current form.
-A better format is needed and probably shouldn't be text based.
+This example uses `+❮┃❯+` to show were the focus is and `+_+` for holes in the edited AST.
