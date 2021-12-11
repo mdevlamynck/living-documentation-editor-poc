@@ -142,10 +142,10 @@ pub mod content {
         pub enum FileTransition {
             Key { from: Id, to: Id, key: Key },
             Keys { from: Id, to: Id, keys: Vec<Key> },
-            // Word { from: Id, to: Id, word: Word },
+            Word { from: Id, to: Id, word: Word },
         }
 
-        // pub type Word = String;
+        pub type Word = String;
 
         pub fn read_yaml(path: impl AsRef<Path>) -> io::Result<Scenario> {
             use FileTransition as FT;
@@ -168,7 +168,7 @@ pub mod content {
                     .flat_map(|t| match t {
                         FT::Key { from, to, key } => file_key_to_transition(from, to, key),
                         FT::Keys { from, to, keys } => file_keys_to_transition(from, to, keys),
-                        // FT::Word { from, to, word } => file_word_to_transition(from, to, word),
+                        FT::Word { from, to, word } => file_word_to_transition(from, to, word),
                     })
                     .collect::<Vec<_>>(),
             })
@@ -198,30 +198,30 @@ pub mod content {
                 .collect::<Vec<_>>()
         }
 
-        // fn file_word_to_transition(from: &Id, to: &Id, word: &Word) -> Vec<Transition> {
-        //     let first = 0;
-        //     let last = word.len() - 1;
-        //
-        //     word.chars()
-        //         .enumerate()
-        //         .map(|(index, key)| Transition {
-        //             from: if index == first {
-        //                 format!("{}", from)
-        //             } else {
-        //                 format!("{}-{}", from, index - 1)
-        //             },
-        //             to: if index == last {
-        //                 format!("{}", to)
-        //             } else {
-        //                 format!("{}-{}", from, index)
-        //             },
-        //             key: Key {
-        //                 key,
-        //                 modifiers: BTreeSet::new(),
-        //             },
-        //         })
-        //         .collect::<Vec<_>>()
-        // }
+        fn file_word_to_transition(from: &Id, to: &Id, word: &Word) -> Vec<Transition> {
+            let first = 0;
+            let last = word.len() - 1;
+
+            word.chars()
+                .enumerate()
+                .map(|(index, key)| Transition {
+                    from: if index == first {
+                        format!("{}", from)
+                    } else {
+                        format!("{}-{}", to, index - 1)
+                    },
+                    to: if index == last {
+                        format!("{}", to)
+                    } else {
+                        format!("{}-{}", to, index)
+                    },
+                    key: Key {
+                        key,
+                        modifiers: BTreeSet::new(),
+                    },
+                })
+                .collect::<Vec<_>>()
+        }
 
         impl Key {
             fn to_string(&self) -> String {

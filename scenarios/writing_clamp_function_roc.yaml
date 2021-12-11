@@ -2,16 +2,16 @@ first: '1'
 screens:
   1: |
     ❮┃❯
-  2-1: |
+  2-0: |
     c : _
     ❮c┃❯ = _
-  2-2: |
+  2-1: |
     cl : _
     ❮cl┃❯ = _
-  2-3: |
+  2-2: |
     cla : _
     ❮cla┃❯ = _
-  2-4: |
+  2-3: |
     clam : _
     ❮clam┃❯ = _
   2: |
@@ -32,11 +32,11 @@ screens:
       clamp : _ -> _
       clamp = \v, ❮┃❯ ->
         _
-  7-1: |
+  7-0: |
     clamp : _, _ -> _
     clamp = \v, ❮l┃❯ ->
       _
-  7-2: |
+  7-1: |
     clamp : _, _ -> _
     clamp = \v, ❮lo┃❯ ->
       _
@@ -48,15 +48,15 @@ screens:
     clamp : _, _ -> _
     clamp = \v, low, ❮┃❯ ->
       _
-  9-1: |
+  9-0: |
     clamp : _, _, _ -> _
     clamp = \v, low, ❮h┃❯ ->
       _
-  9-2: |
+  9-1: |
     clamp : _, _, _ -> _
     clamp = \v, low, ❮hi┃❯ ->
       _
-  9-3: |
+  9-2: |
     clamp : _, _, _ -> _
     clamp = \v, low, ❮hig┃❯ ->
       _
@@ -85,12 +85,12 @@ screens:
     clamp = \v, low, high ->
       v
         |> ❮┃❯
-  15-1: |
+  15-0: |
     clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
         |> ❮m┃❯
-  15-2: |
+  15-1: |
     clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
@@ -105,13 +105,13 @@ screens:
     clamp = \v, low, high ->
       v
         |> max ❮┃❯
-  17-1: |
-    clamp : Num a, Num a, * -> Num a
+  17-0: |
+    clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
         |> max ❮l┃❯
-  17-2: |
-    clamp : Num a, Num a, * -> Num a
+  17-1: |
+    clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
         |> max ❮lo┃❯
@@ -131,13 +131,13 @@ screens:
       v
         |> max low
         |> ❮┃❯
-  20-1: |
+  20-0: |
     clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
         |> max low
         |> ❮m┃❯
-  20-2: |
+  20-1: |
     clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
@@ -155,20 +155,20 @@ screens:
       v
         |> max low
         |> min ❮┃❯
-  22-1: |
-    clamp : Num a, Num a, Num a -> Num a
+  22-0: |
+    clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
         |> max low
         |> min ❮h┃❯
-  22-2: |
-    clamp : Num a, Num a, Num a -> Num a
+  22-1: |
+    clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
         |> max low
         |> min ❮hi┃❯
-  22-3: |
-    clamp : Num a, Num a, Num a -> Num a
+  22-2: |
+    clamp : _, _, _ -> _
     clamp = \v, low, high ->
       v
         |> max low
@@ -180,56 +180,29 @@ screens:
         |> max low
         |> min ❮high┃❯
 transitions:
-  #  - { from: '1', to: '2', word: 'clamp' }
-  - { from: '1', to: '2-1', key: 'c' }
-  - { from: '2-1', to: '2-2', key: 'l' }
-  - { from: '2-2', to: '2-3', key: 'a' }
-  - { from: '2-3', to: '2-4', key: 'm' }
-  - { from: '2-4', to: '2', key: 'p' }
+  - { from: '1', to: '2', word: 'clamp' }
   - {  from: '2', to: '3', keys: [' ', '='] }
   - { from: '3', to: '4', key: '\' }
   - { from: '2', to: '4', key: '\' }
-#  - { from: '4', to: '5', word: 'v' }
-  - { from: '4', to: '5', key: 'v' }
+  - { from: '4', to: '5', word: 'v' }
   - { from: '5', to: '6', keys: [' ', ','] }
-#  - { from: '6', to: '7', word: 'low' }
-  - { from: '6', to: '7-1', key: 'l' }
-  - { from: '7-1', to: '7-2', key: 'o' }
-  - { from: '7-2', to: '7', key: 'w' }
+  - { from: '6', to: '7', word: 'low' }
   - { from: '7', to: '8', keys: [' ', ','] }
-#  - { from: '8', to: '9', word: 'high' }
-  - { from: '8', to: '9-1', key: 'h' }
-  - { from: '9-1', to: '9-2', key: 'i' }
-  - { from: '9-2', to: '9-3', key: 'g' }
-  - { from: '9-3', to: '9', key: 'h' }
+  - { from: '8', to: '9', word: 'high' }
   - { from: '9', to: '10', keys: [' ', ','] }
   - { from: '10', to: '11', keys: [' ', '-', '>'] }
   - { from: '10', to: '11', key: '<Enter>' }
   - { from: '9', to: '11', key: '<Enter>' }
-#  - { from: '11', to: '12', word: 'v' }
-  - { from: '11', to: '12', key: 'v' }
+  - { from: '11', to: '12', word: 'v' }
   - { from: '12', to: '13', key: ' ' }
   - { from: '13', to: '14', key: '|' }
   - { from: '12', to: '14', key: '|' }
-#  - { from: '14', to: '15', word: 'max' }
-  - { from: '14', to: '15-1', key: 'm' }
-  - { from: '15-1', to: '15-2', key: 'a' }
-  - { from: '15-2', to: '15', key: 'x' }
+  - { from: '14', to: '15', word: 'max' }
   - { from: '15', to: '16', key: ' ' }
-#  - { from: '16', to: '17', word: 'low' }
-  - { from: '16', to: '17-1', key: 'l' }
-  - { from: '17-1', to: '17-2', key: 'o' }
-  - { from: '17-2', to: '17', key: 'w' }
+  - { from: '16', to: '17', word: 'low' }
   - { from: '17', to: '18', key: ' ' }
   - { from: '18', to: '19', key: '|' }
   - { from: '17', to: '19', key: '|' }
-#  - { from: '19', to: '20', word: 'min' }
-  - { from: '19', to: '20-1', key: 'm' }
-  - { from: '20-1', to: '20-2', key: 'i' }
-  - { from: '20-2', to: '20', key: 'n' }
+  - { from: '19', to: '20', word: 'min' }
   - { from: '20', to: '21', key: ' ' }
-#  - { from: '21', to: '22', word: 'high' }
-  - { from: '21', to: '22-1', key: 'h' }
-  - { from: '22-1', to: '22-2', key: 'i' }
-  - { from: '22-2', to: '22-3', key: 'g' }
-  - { from: '22-3', to: '22', key: 'h' }
+  - { from: '21', to: '22', word: 'high' }
