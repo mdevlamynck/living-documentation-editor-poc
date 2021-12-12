@@ -195,14 +195,12 @@ pub mod content {
                     }
 
                     let (screen_from, screen_to) = match (screens.get(from), screens.get(to)) {
-                        (Some(screen_from), Some(screen_to)) => (screen_from.clone(), screen_to.clone()),
+                        (Some(screen_from), Some(screen_to)) => (screen_from, screen_to),
                         _ => break,
                     };
 
-                    screens.insert(
-                        format!("{}-{}", to, index),
-                        generate_intermediate_screen(&screen_from, &screen_to, &word, &intermediate),
-                    );
+                    let generated_screen = generate_intermediate_screen(screen_from, screen_to, &word, &intermediate);
+                    screens.insert(format!("{}-{}", to, index), generated_screen);
                 }
             }
         }
