@@ -15,7 +15,7 @@
       app = "app";
 
       shellInputs = with pkgs; [
-        (rust-bin.stable.latest.default.override { extensions = [ "rust-src" ]; })
+        (rust-bin.nightly.latest.default.override { extensions = [ "rust-src" ]; })
         clang
       ];
       appNativeBuildInputs = with pkgs; [

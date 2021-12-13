@@ -12,15 +12,14 @@ fn main() -> io::Result<()> {
 }
 
 mod app {
-    use crate::content::Modifier;
     use crate::{
-        content::{self, Id, Scenario},
+        content::{self, Id, Modifier, Scenario},
         tui::*,
     };
 
     pub struct Model {
         scenario: Scenario,
-        current: Id,
+        current:  Id,
     }
 
     pub fn app(scenario: Scenario) -> App<Model> {
@@ -35,14 +34,14 @@ mod app {
 
     pub fn update(event: Event, model: Model) -> Option<Model> {
         match event {
-            Event::Key(Key::Esc) => None,
+            Event::Key(Key::Esc) | Event::Key(Key::Ctrl('c')) => None,
             Event::Key(Key::Char(c)) => advance(model, content::Key::from(c)),
             Event::Key(Key::Alt(c)) => {
                 advance(model, content::Key::with_modifier(c, Modifier::Alt))
-            }
+            },
             Event::Key(Key::Ctrl(c)) => {
                 advance(model, content::Key::with_modifier(c, Modifier::Ctrl))
-            }
+            },
             _ => Some(model),
         }
     }
@@ -61,12 +60,13 @@ mod app {
 }
 
 pub mod content {
-    use serde::Deserialize;
     use std::collections::{BTreeMap, BTreeSet};
 
+    use serde::Deserialize;
+
     pub struct Scenario {
-        pub first: Id,
-        screens: BTreeMap<Id, Screen>,
+        pub first:   Id,
+        screens:     BTreeMap<Id, Screen>,
         transitions: Vec<Transition>,
     }
 
@@ -75,13 +75,13 @@ pub mod content {
 
     pub struct Transition {
         from: Id,
-        to: Id,
-        key: Key,
+        to:   Id,
+        key:  Key,
     }
 
     #[derive(Clone, PartialEq, Eq)]
     pub struct Key {
-        key: char,
+        key:       char,
         modifiers: BTreeSet<Modifier>,
     }
 
@@ -101,7 +101,7 @@ pub mod content {
                 .iter()
                 .filter(|Transition { from, key, .. }| from == pos && key == input)
                 .map(|Transition { to, .. }| to.clone())
-                .nth(0)
+                .next()
         }
     }
 
@@ -122,19 +122,25 @@ pub mod content {
     }
 
     pub mod parser {
+        use std::{collections::BTreeSet, fmt, fs, io, path::Path};
+
+        use combine::{
+            attempt, choice,
+            parser::char::{char, string},
+            satisfy, Parser,
+        };
+        use serde::{
+            de::{self, Visitor},
+            Deserialize, Deserializer, Serialize, Serializer,
+        };
+
         use super::*;
         use crate::itertools::NGramExt;
-        use combine::parser::char::{char, string};
-        use combine::{attempt, choice, satisfy, Parser};
-        use serde::de::{self, Visitor};
-        use serde::{Deserialize, Deserializer, Serialize, Serializer};
-        use std::collections::BTreeSet;
-        use std::{fmt, fs, io, path::Path};
 
         #[derive(Deserialize)]
         pub struct FileScenario {
-            first: Id,
-            screens: BTreeMap<Id, Screen>,
+            first:       Id,
+            screens:     BTreeMap<Id, Screen>,
             transitions: Vec<FileTransition>,
         }
 
@@ -177,7 +183,7 @@ pub mod content {
 
         fn add_intermediate_word_screens(
             screens: &mut BTreeMap<Id, Screen>,
-            transitions: &Vec<FileTransition>,
+            transitions: &[FileTransition],
         ) {
             use FileTransition as FT;
 
@@ -199,7 +205,8 @@ pub mod content {
                         _ => break,
                     };
 
-                    let generated_screen = generate_intermediate_screen(screen_from, screen_to, &word, &intermediate);
+                    let generated_screen =
+                        generate_intermediate_screen(screen_from, screen_to, &word, &intermediate);
                     screens.insert(format!("{}-{}", to, index), generated_screen);
                 }
             }
@@ -211,25 +218,19 @@ pub mod content {
             word: &str,
             intermediate: &str,
         ) -> String {
-            dissimilar::diff(
-                &from.replace("┃🗌", "┃"), 
-                to
-            )
+            dissimilar::diff(&from.replace("┃🗌", "┃"), to)
                 .iter()
-                .skip_while(|c| match c {
-                    &dissimilar::Chunk::Delete(_) => true,
-                    _ => false,
-                })
-                .map(|c| match c {
-                    &dissimilar::Chunk::Equal(str) => str.into(),
-                    &dissimilar::Chunk::Delete(str) => str.into(),
-                    &dissimilar::Chunk::Insert(str) => {
+                .skip_while(|c| matches!(*c, dissimilar::Chunk::Delete(_)))
+                .map(|c| match *c {
+                    dissimilar::Chunk::Equal(str) => str.into(),
+                    dissimilar::Chunk::Delete(str) => str.into(),
+                    dissimilar::Chunk::Insert(str) => {
                         if str.contains(word) {
                             str.replace(word, intermediate)
                         } else {
                             "".into()
                         }
-                    }
+                    },
                 })
                 .collect::<String>()
         }
@@ -237,17 +238,17 @@ pub mod content {
         fn file_key_to_transition(from: &Id, to: &Id, key: &Key) -> Vec<Transition> {
             vec![Transition {
                 from: from.into(),
-                to: to.into(),
-                key: key.clone(),
+                to:   to.into(),
+                key:  key.clone(),
             }]
         }
 
-        fn file_keys_to_transition(from: &Id, to: &Id, keys: &Vec<Key>) -> Vec<Transition> {
+        fn file_keys_to_transition(from: &Id, to: &Id, keys: &[Key]) -> Vec<Transition> {
             keys.iter()
                 .map(|key| Transition {
                     from: from.into(),
-                    to: to.into(),
-                    key: key.clone(),
+                    to:   to.into(),
+                    key:  key.clone(),
                 })
                 .collect::<Vec<_>>()
         }
@@ -260,16 +261,16 @@ pub mod content {
                 .enumerate()
                 .map(|(index, key)| Transition {
                     from: if index == first {
-                        format!("{}", from)
+                        from.into()
                     } else {
                         format!("{}-{}", to, index - 1)
                     },
-                    to: if index == last {
-                        format!("{}", to)
+                    to:   if index == last {
+                        to.into()
                     } else {
                         format!("{}-{}", to, index)
                     },
-                    key: Key {
+                    key:  Key {
                         key,
                         modifiers: BTreeSet::new(),
                     },
@@ -303,6 +304,7 @@ pub mod content {
                     attempt(
                         choice((
                             attempt(string("<Enter>").map(|_| '\n')),
+                            attempt(string("<Tab>").map(|_| '\t')),
                             attempt(satisfy(|_| true)),
                         ))
                         .map(|key| Key {
@@ -369,9 +371,9 @@ pub mod tui {
     };
 
     pub struct App<Model: Sized> {
-        pub model: Model,
+        pub model:  Model,
         pub update: fn(Event, Model) -> Option<Model>,
-        pub view: fn(&Model) -> UI,
+        pub view:   fn(&Model) -> UI,
     }
 
     pub enum UI<'a> {
@@ -390,17 +392,12 @@ pub mod tui {
 
         render(view(&model), &mut out);
 
-        loop {
-            match wait_for_event(&receiver) {
-                Some(event) => {
-                    model = match update(event, model) {
-                        Some(new_model) => new_model,
-                        None => break,
-                    };
-                    render(view(&model), &mut out);
-                }
-                _ => break,
-            }
+        while let Some(event) = wait_for_event(&receiver) {
+            model = match update(event, model) {
+                Some(new_model) => new_model,
+                None => break,
+            };
+            render(view(&model), &mut out);
         }
     }
 
@@ -428,7 +425,8 @@ pub mod tui {
     }
 
     fn render(ui: UI, out: &mut impl Write) {
-        write!(out, "{}{}", termion::clear::All, termion::style::Bold).expect("Failed to clear terminal.");
+        write!(out, "{}{}", termion::clear::All, termion::style::Bold)
+            .expect("Failed to clear terminal.");
 
         match ui {
             UI::Content(content) => content.lines().enumerate().for_each(|(pos, content)| {
@@ -455,14 +453,14 @@ pub mod itertools {
         fn ngram(&self) -> NGram {
             NGram {
                 string: self,
-                pos: 0,
+                pos:    0,
             }
         }
     }
 
     pub struct NGram<'a> {
         string: &'a String,
-        pos: usize,
+        pos:    usize,
     }
 
     impl<'a> Iterator for NGram<'a> {
