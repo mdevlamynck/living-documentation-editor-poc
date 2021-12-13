@@ -199,10 +199,8 @@ pub mod content {
                         _ => break,
                     };
 
-                    screens.insert(
-                        format!("{}-{}", to, index),
-                        generate_intermediate_screen(screen_from, screen_to, &word, &intermediate),
-                    );
+                    let generated_screen = generate_intermediate_screen(screen_from, screen_to, &word, &intermediate);
+                    screens.insert(format!("{}-{}", to, index), generated_screen);
                 }
             }
         }
@@ -213,7 +211,10 @@ pub mod content {
             word: &str,
             intermediate: &str,
         ) -> String {
-            dissimilar::diff(from, to)
+            dissimilar::diff(
+                &from.replace("┃🗌", "┃"), 
+                to
+            )
                 .iter()
                 .skip_while(|c| match c {
                     &dissimilar::Chunk::Delete(_) => true,
@@ -427,7 +428,7 @@ pub mod tui {
     }
 
     fn render(ui: UI, out: &mut impl Write) {
-        write!(out, "{}{}", termion::clear::All, termion::style::Bold);
+        write!(out, "{}{}", termion::clear::All, termion::style::Bold).expect("Failed to clear terminal.");
 
         match ui {
             UI::Content(content) => content.lines().enumerate().for_each(|(pos, content)| {

@@ -1,32 +1,32 @@
 first: '1'
 screens:
   1: |
-    ┃
+    ┃🗌
   2: |
     clamp : 🗌
     clamp┃ = 🗌
   3: |
     clamp : 🗌
-    clamp = ┃
+    clamp = ┃🗌
   4: |
     clamp : 🗌 -> 🗌
-    clamp = \┃ ->
+    clamp = \┃🗌 ->
       🗌
   5: |
     clamp : 🗌 -> 🗌
     clamp = \v┃ ->
       🗌
   6: |
-      clamp : 🗌, 🗌 -> 🗌
-      clamp = \v, ┃ ->
-        🗌
+    clamp : 🗌, 🗌 -> 🗌
+    clamp = \v, ┃🗌 ->
+      🗌
   7: |
     clamp : 🗌, 🗌 -> 🗌
     clamp = \v, low┃ ->
       🗌
   8: |
     clamp : 🗌, 🗌, 🗌 -> 🗌
-    clamp = \v, low, ┃ ->
+    clamp = \v, low, ┃🗌 ->
       🗌
   9: |
     clamp : 🗌, 🗌, 🗌 -> 🗌
@@ -34,64 +34,64 @@ screens:
       🗌
   10: |
     clamp : 🗌, 🗌, 🗌, 🗌 -> 🗌
-    clamp = \v, low, high, ┃ ->
+    clamp = \v, low, high, ┃🗌 ->
       🗌
   11: |
     clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
-      ┃
+      ┃🗌
   12: |
-    clamp : a, *, * -> a
+    clamp : a, 🗌, 🗌 -> a
     clamp = \v, low, high ->
       v┃
-  13: |
-    clamp : a, *, * -> a
+  30: |
+    clamp : (a -> b), 🗌, 🗌 -> b
     clamp = \v, low, high ->
-      v ┃
+      v ┃🗌
+  13: |
+    clamp : 🗌, 🗌, 🗌 -> 🗌
+    clamp = \v, low, high ->
+      v
+        |> ┃🗌
   14: |
     clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
-        |> ┃
-  15: |
-    clamp : 🗌, 🗌, 🗌 -> 🗌
-    clamp = \v, low, high ->
-      v
         |> max┃
-  16: |
-    clamp : 🗌, 🗌, 🗌 -> 🗌
+  15: |
+    clamp : Num a, 🗌, 🗌 -> Num a
     clamp = \v, low, high ->
       v
-        |> max ┃
-  17: |
-    clamp : Num a, Num a, * -> Num a
+        |> max ┃🗌
+  16: |
+    clamp : Num a, Num a, 🗌 -> Num a
     clamp = \v, low, high ->
       v
         |> max low┃
-  18: |
-    clamp : Num a, Num a, * -> Num a
+  40: |
+    clamp : Num a, Num a, 🗌 -> Num a
     clamp = \v, low, high ->
       v
-        |> max low ┃
-  19: |
-    clamp : 🗌, 🗌, 🗌 -> 🗌
+        |> max low ┃🗌
+  17: |
+    clamp : Num a, Num a, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
         |> max low
-        |> ┃
-  20: |
-    clamp : 🗌, 🗌, 🗌 -> 🗌
+        |> ┃🗌
+  18: |
+    clamp : Num a, Num a, 🗌 -> 🗌
     clamp = \v, low, high ->
       v
         |> max low
         |> min┃
-  21: |
-    clamp : 🗌, 🗌, 🗌 -> 🗌
+  19: |
+    clamp : Num a, Num a, 🗌 -> Num a
     clamp = \v, low, high ->
       v
         |> max low
-        |> min ┃
-  22: |
+        |> min ┃🗌
+  20: |
     clamp : Num a, Num a, Num a -> Num a
     clamp = \v, low, high ->
       v
@@ -112,15 +112,15 @@ transitions:
   - { from: '10', to: '11', key: '<Enter>' }
   - { from: '9', to: '11', key: '<Enter>' }
   - { from: '11', to: '12', word: 'v' }
-  - { from: '12', to: '13', key: ' ' }
-  - { from: '13', to: '14', key: '|' }
-  - { from: '12', to: '14', key: '|' }
-  - { from: '14', to: '15', word: 'max' }
-  - { from: '15', to: '16', key: ' ' }
-  - { from: '16', to: '17', word: 'low' }
-  - { from: '17', to: '18', key: ' ' }
-  - { from: '18', to: '19', key: '|' }
-  - { from: '17', to: '19', key: '|' }
-  - { from: '19', to: '20', word: 'min' }
-  - { from: '20', to: '21', key: ' ' }
-  - { from: '21', to: '22', word: 'high' }
+  - { from: '12', to: '13', key: '|' }
+  - { from: '12', to: '30', key: ' ' }
+  - { from: '30', to: '13', key: '|' }
+  - { from: '13', to: '14', word: 'max' }
+  - { from: '14', to: '15', key: ' ' }
+  - { from: '15', to: '16', word: 'low' }
+  - { from: '16', to: '17', key: '|' }
+  - { from: '16', to: '40', key: ' ' }
+  - { from: '40', to: '17', key: '|' }
+  - { from: '17', to: '18', word: 'min' }
+  - { from: '18', to: '19', key: ' ' }
+  - { from: '19', to: '20', word: 'high' }
