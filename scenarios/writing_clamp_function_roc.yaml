@@ -44,6 +44,10 @@ screens:
     clamp : a, 🗌, 🗌 -> a
     clamp = \v, low, high ->
       v┃
+  30: |
+    clamp : (a -> b), 🗌, 🗌 -> b
+    clamp = \v, low, high ->
+      v ┃🗌
   13: |
     clamp : 🗌, 🗌, 🗌 -> 🗌
     clamp = \v, low, high ->
@@ -64,6 +68,11 @@ screens:
     clamp = \v, low, high ->
       v
         |> max low┃
+  40: |
+    clamp : Num a, Num a, 🗌 -> Num a
+    clamp = \v, low, high ->
+      v
+        |> max low ┃🗌
   17: |
     clamp : Num a, Num a, 🗌 -> 🗌
     clamp = \v, low, high ->
@@ -104,10 +113,14 @@ transitions:
   - { from: '9', to: '11', key: '<Enter>' }
   - { from: '11', to: '12', word: 'v' }
   - { from: '12', to: '13', key: '|' }
+  - { from: '12', to: '30', key: ' ' }
+  - { from: '30', to: '13', key: '|' }
   - { from: '13', to: '14', word: 'max' }
   - { from: '14', to: '15', key: ' ' }
   - { from: '15', to: '16', word: 'low' }
   - { from: '16', to: '17', key: '|' }
+  - { from: '16', to: '40', key: ' ' }
+  - { from: '40', to: '17', key: '|' }
   - { from: '17', to: '18', word: 'min' }
   - { from: '18', to: '19', key: ' ' }
   - { from: '19', to: '20', word: 'high' }
